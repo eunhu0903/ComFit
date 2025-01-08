@@ -6,16 +6,16 @@ from schemas.profile import UserProfileResponse, UserProfileUpdate
 
 router = APIRouter()
 
-@router.get("/profile/{user_id}", response_model=UserProfileResponse, tags=["Profile"])
-def get_profile(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+@router.get("/{username}", response_model=UserProfileResponse, tags=["Profile"])
+def get_profile(username: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not Found")
     return user
 
-@router.put("/profile/{user_id}", response_model=UserProfileResponse, tags=["Profile"])
-def put_profile(user_id: int, profile_data: UserProfileUpdate, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+@router.put("/{username}", response_model=UserProfileResponse, tags=["Profile"])
+def put_profile(username: str, profile_data: UserProfileUpdate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not Found")
     

@@ -8,14 +8,16 @@ from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
-@router.post("/commit_workout/{user_id}", response_model=WorkoutResponse)
-def post_workout(user_id: int, workout: WorkoutCreate, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+@router.post("/{username}/commit", response_model=WorkoutResponse)
+def post_workout(username: str, workout: WorkoutCreate, db: Session = Depends(get_db)):
+    # username으로 User 조회
+    user = db.query(User).filter(User.username == username).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not Found")
+        raise HTTPException(status_code=404, detail="User not found")
     
+    # 운동 기록 생성
     db_workout = Workout(
-        user_id=user_id,
+        user_id=user.id,
         exercise_type=workout.exercise_type,
         duration=workout.duration,
         sets=workout.sets,
@@ -26,28 +28,28 @@ def post_workout(user_id: int, workout: WorkoutCreate, db: Session = Depends(get
     db.add(db_workout)
     db.commit()
     db.refresh(db_workout)
+    
     return db_workout
 
-@router.get("/workout/{user_id}", response_model=List[WorkoutResponse])
-def get_workout(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+@router.get("/{username}/workout", response_model=List[WorkoutResponse])
+def get_workout(username: str, db: Session = Depends(get_db)):
+    # username으로 User 조회
+    user = db.query(User).filter(User.username == username).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not Found")
+        raise HTTPException(status_code=404, detail="User not found")
     
-    workouts = db.query(Workout).filter(Workout.user_id == user_id).all()
+    workouts = db.query(Workout).filter(Workout.user_id == user.id).all()
     return workouts 
 
-router = APIRouter()
-
-@router.patch("/{user_id}/workout/{workout_id}", response_model=WorkoutCreate)
-def update_workout(user_id: int, workout_id: int, workout: WorkoutCreate, db: Session = Depends(get_db)):
-    # 사용자 확인
-    user = db.query(User).filter(User.id == user_id).first()
+@router.patch("/{username}/workout/{workout_id}", response_model=WorkoutCreate)
+def update_workout(username: str, workout_id: int, workout: WorkoutCreate, db: Session = Depends(get_db)):
+    # username으로 사용자 조회
+    user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not Found")
 
     # 운동 기록 조회 (user_id도 확인)
-    existing_workout = db.query(Workout).filter(Workout.id == workout_id, Workout.user_id == user_id).first()
+    existing_workout = db.query(Workout).filter(Workout.id == workout_id, Workout.user_id == user.id).first()
     
     # 운동 기록이 존재하지 않으면 404 에러 반환
     if not existing_workout:
@@ -72,17 +74,18 @@ def update_workout(user_id: int, workout_id: int, workout: WorkoutCreate, db: Se
     
     return JSONResponse(status_code=200, content={"message": "Workout updated successfully"})
 
-@router.delete("/{user_id}/workout/{workout_id}", status_code=204)
-def delete_workout(user_id: int, workout_id: int, db: Session = Depends(get_db)):
+
+@router.delete("/{username}/workout/{workout_id}", status_code=204)
+def delete_workout(username: str, workout_id: int, db: Session = Depends(get_db)):
     # 사용자 확인
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
     # 운동 기록 확인
     workout = db.query(Workout).filter(
         Workout.id == workout_id, 
-        Workout.user_id == user_id
+        Workout.user_id == user.id
     ).first()
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
