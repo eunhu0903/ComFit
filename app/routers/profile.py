@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.database import get_db
 from db.models import User
-from schemas.profile import UserProfileResponse
+from schemas.profile import UserProfileResponse, UserProfileUpdate
 
 router = APIRouter()
 
@@ -11,4 +11,19 @@ def get_profile(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not Found")
+    return user
+
+@router.put("/profile/{user_id}", response_model=UserProfileResponse, tags=["Profile"])
+def put_profile(user_id: int, profile_data: UserProfileUpdate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not Found")
+    
+    if profile_data.username:
+        user.username = profile_data.username
+    else:
+        raise HTTPException(status_code=400, detail="Username is required")
+    
+    db.commit()
+    db.refresh(user)
     return user
