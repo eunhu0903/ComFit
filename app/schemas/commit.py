@@ -5,7 +5,7 @@ class CommitCreate(BaseModel):
     duration: int
     sets: int
     intensity: str
-    notes: str
+    memo: str
 
 class CommitResponse(BaseModel):
     id: int
@@ -13,7 +13,7 @@ class CommitResponse(BaseModel):
     duration: int
     sets: int
     intensity: str
-    notes: str
+    memo: str
 
     class Config:
         from_attributes = True
