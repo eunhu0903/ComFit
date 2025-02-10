@@ -7,6 +7,7 @@ class Commit(Base):
     __tablename__="commit"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_commit_id = Column(Integer, nullable=False)
     type = Column(String(50), nullable=False)
     duration = Column(Integer, nullable=False)
     sets = Column(Integer, nullable=False)

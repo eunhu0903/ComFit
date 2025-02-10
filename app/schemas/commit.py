@@ -8,7 +8,6 @@ class CommitCreate(BaseModel):
     memo: str
 
 class CommitResponse(BaseModel):
-    id: int
     type: str
     duration: int
     sets: int
