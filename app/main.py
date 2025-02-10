@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from db.session import Base, engine
 from api import user
 
@@ -6,8 +7,13 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-app.include_router(user.router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.get("/")
-def root_read():
-    return {"messages": "Hello World!"}
+
+app.include_router(user.router)
