@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from core.token import verify_token
@@ -11,7 +11,7 @@ from core.token import get_token_from_header
 router = APIRouter()
 
 @router.get("/home")
-def home(authorization: str = Depends(get_token_from_header), db: Session = Depends(get_db)):
+def home(authorization: str = Depends(get_token_from_header), query: str = Query(None, min_length=1), db: Session = Depends(get_db)):
     email = verify_token(authorization, db)
     
     user = db.query(User).filter(User.email == email).first()
@@ -29,6 +29,14 @@ def home(authorization: str = Depends(get_token_from_header), db: Session = Depe
         .limit(5)
         .all()
     )
+
+    if query:
+        users = db.query(User).filter(User.username.ilike(f"%{query}%")).all()
+        if not users:
+            raise HTTPException(status_code=404, detail="No users found")
+        return {
+            "users": [{"username": u.username} for u in users]
+        }
 
     return {
         "message": welcome_message,
