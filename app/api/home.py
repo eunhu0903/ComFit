@@ -3,12 +3,13 @@ from sqlalchemy.orm import Session
 from core.token import verify_token
 from models.user import User
 from db.session import get_db
+from core.token import get_token_from_header
 
 router = APIRouter()
 
 @router.get("/home")
-def home(token: str, db: Session = Depends(get_db)):
-    email = verify_token(token, db)
+def home(authorization: str = Depends(get_token_from_header), db: Session = Depends(get_db)):
+    email = verify_token(authorization, db)
     
     user = db.query(User).filter(User.email == email).first()
     

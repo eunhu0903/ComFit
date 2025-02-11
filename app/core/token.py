@@ -1,8 +1,15 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Header
 from datetime import datetime
 from sqlalchemy.orm import Session
 from models.user import User
 from core.security import decode_access_token
+
+def get_token_from_header(authorization: str = Header(None)) -> str:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authorization token is missing or invalid")
+    
+    token = authorization[7:]
+    return token
 
 def verify_token(token: str, db: Session) -> str:
     try:
