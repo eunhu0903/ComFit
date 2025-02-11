@@ -9,6 +9,11 @@ router = APIRouter()
 
 @router.post("/signup", response_model=UserResponse, tags=["User"])
 def signup(user: UserCreate, db: Session = Depends(get_db)):
+
+    existing_username = db.query(User).filter(User.username == user.username).first()
+    if existing_username:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
     existing_user = db.query(User).filter(User.email == user.email).first()  
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
